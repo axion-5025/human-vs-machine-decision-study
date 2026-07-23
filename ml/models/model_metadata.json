@@ -1,0 +1,8 @@
+{
+  "created_at": "2026-07-23T03:27:55.703140+00:00",
+  "dataset_path": "C:\\projects\\human-vs-machine-decision-study\\ml\\data\\synthetic_training_data.csv",
+  "model_path": "C:\\projects\\human-vs-machine-decision-study\\ml\\models\\logistic_regression_model.json",
+  "training_rows": 40,
+  "accuracy_on_synthetic_training_data": 0.9,
+  "important_note": "This is a synthetic reference model for demonstration and technical reproducibility. It is not a validated research-grade production model."
+}

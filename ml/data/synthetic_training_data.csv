@@ -1,0 +1,41 @@
+scenario_id,category,option_code,option_id,option_label,option_is_broader_event,option_has_expected_value_advantage,option_is_loss_protective,is_benchmark_choice
+conjunction-judgement-1,conjunction-judgement,A,finance,The person works in finance.,1,0,0,1
+conjunction-judgement-1,conjunction-judgement,B,finance-investor,The person works in finance and regularly invests in the stock market.,0,0,0,0
+conjunction-judgement-2,conjunction-judgement,A,designer,The person is a designer.,1,0,0,1
+conjunction-judgement-2,conjunction-judgement,B,designer-freelance,The person is a designer and runs a freelance business.,0,0,0,0
+conjunction-judgement-3,conjunction-judgement,A,volunteers,The person volunteers occasionally.,1,0,0,1
+conjunction-judgement-3,conjunction-judgement,B,volunteers-campaigns,The person volunteers occasionally and participates in local campaigns.,0,0,0,0
+conjunction-judgement-4,conjunction-judgement,A,pass-exam,The student will pass the exam.,1,0,0,1
+conjunction-judgement-4,conjunction-judgement,B,pass-exam-top-grade,The student will pass the exam and achieve a top grade.,0,0,0,0
+conjunction-judgement-5,conjunction-judgement,A,data-analyst,The person works as a data analyst.,1,0,0,1
+conjunction-judgement-5,conjunction-judgement,B,data-analyst-models,The person works as a data analyst and regularly builds predictive models.,0,0,0,0
+framing-effect-1,framing,A,guaranteed-return-500,A guaranteed return of 500.,0,0,0,1
+framing-effect-1,framing,B,chance-gain-1000,A 50% chance to gain 1000 and a 50% chance to gain nothing.,0,0,0,0
+framing-effect-2,framing,A,guaranteed-loss-500,A guaranteed loss of 500.,0,0,1,0
+framing-effect-2,framing,B,chance-lose-1000,A 50% chance to lose 1000 and a 50% chance to lose nothing.,0,0,0,1
+framing-effect-3,framing,A,retain-profits,This strategy will ensure 70% of profits are retained.,0,0,0,1
+framing-effect-3,framing,B,lose-profits-risk,This strategy carries a 30% chance of losing all profits.,0,0,0,0
+framing-effect-4,framing,A,pay-avoid-loss,Pay 200 to fully avoid a potential loss.,0,0,1,1
+framing-effect-4,framing,B,chance-loss-1000,20% chance of losing 1000 and 80% chance of losing nothing.,0,0,0,0
+framing-effect-5,framing,A,gain-1000-80,80% chance of gaining 1000.,0,1,0,1
+framing-effect-5,framing,B,gain-nothing-20,20% chance of gaining nothing.,0,0,0,0
+risk-preference-1,risk-preference,A,guaranteed-400,Guaranteed 400.,0,0,0,0
+risk-preference-1,risk-preference,B,chance-900,50% chance of 900 and 50% chance of 0.,0,1,0,1
+risk-preference-2,risk-preference,A,guaranteed-loss-300,Guaranteed loss of 300.,0,0,1,1
+risk-preference-2,risk-preference,B,chance-loss-700,50% chance of losing 700 and 50% chance of losing nothing.,0,0,0,0
+risk-preference-3,risk-preference,A,stable-job,Stable job with a fixed salary.,0,0,1,1
+risk-preference-3,risk-preference,B,startup-job,Startup job with higher potential earnings but high uncertainty.,0,1,0,0
+risk-preference-4,risk-preference,A,guaranteed-2000,Guaranteed return of 2000.,0,0,0,0
+risk-preference-4,risk-preference,B,chance-8000,25% chance of 8000 and 75% chance of 0.,0,1,0,1
+risk-preference-5,risk-preference,A,moderate-results,Choose a project with guaranteed moderate results.,0,0,1,1
+risk-preference-5,risk-preference,B,high-potential-risk,Choose a project with high potential but risk of failure.,0,1,0,0
+probability-judgement-1,probability-judgement,A,one-red-card,Drawing one red card from a standard deck.,1,0,0,1
+probability-judgement-1,probability-judgement,B,two-red-cards,Drawing two red cards consecutively without replacement.,0,0,0,0
+probability-judgement-2,probability-judgement,A,owns-car,A randomly selected individual owns a car.,1,0,0,1
+probability-judgement-2,probability-judgement,B,owns-car-commutes,A randomly selected individual owns a car and commutes daily.,0,0,0,0
+probability-judgement-3,probability-judgement,A,above-average,A randomly selected student scores above average.,1,0,0,1
+probability-judgement-3,probability-judgement,B,above-average-distinction,A randomly selected student scores above average and receives a distinction.,0,0,0,0
+probability-judgement-4,probability-judgement,A,passes-inspection,A product passes quality inspection.,1,0,0,1
+probability-judgement-4,probability-judgement,B,passes-shipped,A product passes inspection and is shipped on time.,0,0,0,0
+probability-judgement-5,probability-judgement,A,employed,A person is employed.,1,0,0,1
+probability-judgement-5,probability-judgement,B,employed-full-time,A person is employed and works full-time.,0,0,0,0

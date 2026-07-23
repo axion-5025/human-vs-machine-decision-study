@@ -45,77 +45,410 @@ class SeedSummary:
 
 
 BASELINE_SCENARIOS: tuple[ScenarioSeed, ...] = (
+    # Section 1: Conjunction Judgement
     ScenarioSeed(
         slug="conjunction-fallacy",
         version=1,
-        title="Conjunction Fallacy",
-        category="probability-estimation",
+        title="Decision Scenario 1",
+        category="conjunction-judgement",
         prompt=(
-            "Asha is 31 years old, analytical, socially engaged, and "
-            "concerned about environmental issues. Which statement is "
-            "more probable?"
+            "A person is described as highly analytical and detail-oriented. "
+            "Which statement is more probable?"
         ),
         options=(
             OptionSeed(
                 code="A",
-                label="Asha works as a bank teller.",
+                label="The person works in finance.",
                 display_order=0,
             ),
             OptionSeed(
                 code="B",
-                label=(
-                    "Asha works as a bank teller and volunteers for an "
-                    "environmental organization."
-                ),
+                label="The person works in finance and regularly invests in the stock market.",
                 display_order=1,
             ),
         ),
     ),
+    ScenarioSeed(
+        slug="conjunction-judgement-2",
+        version=1,
+        title="Decision Scenario 2",
+        category="conjunction-judgement",
+        prompt=(
+            "A person is described as creative and enjoys working independently. "
+            "Which statement is more probable?"
+        ),
+        options=(
+            OptionSeed(
+                code="A",
+                label="The person is a designer.",
+                display_order=0,
+            ),
+            OptionSeed(
+                code="B",
+                label="The person is a designer and runs a freelance business.",
+                display_order=1,
+            ),
+        ),
+    ),
+    ScenarioSeed(
+        slug="conjunction-judgement-3",
+        version=1,
+        title="Decision Scenario 3",
+        category="conjunction-judgement",
+        prompt=(
+            "A person is described as socially active and interested in community work. "
+            "Which statement is more probable?"
+        ),
+        options=(
+            OptionSeed(
+                code="A",
+                label="The person volunteers occasionally.",
+                display_order=0,
+            ),
+            OptionSeed(
+                code="B",
+                label="The person volunteers occasionally and participates in local campaigns.",
+                display_order=1,
+            ),
+        ),
+    ),
+    ScenarioSeed(
+        slug="conjunction-judgement-4",
+        version=1,
+        title="Decision Scenario 4",
+        category="conjunction-judgement",
+        prompt=(
+            "A student consistently performs well academically. "
+            "Which statement is more probable?"
+        ),
+        options=(
+            OptionSeed(
+                code="A",
+                label="The student will pass the exam.",
+                display_order=0,
+            ),
+            OptionSeed(
+                code="B",
+                label="The student will pass the exam and achieve a top grade.",
+                display_order=1,
+            ),
+        ),
+    ),
+    ScenarioSeed(
+        slug="conjunction-judgement-5",
+        version=1,
+        title="Decision Scenario 5",
+        category="conjunction-judgement",
+        prompt=(
+            "A person is described as organised and enjoys working with data. "
+            "Which statement is more probable?"
+        ),
+        options=(
+            OptionSeed(
+                code="A",
+                label="The person works as a data analyst.",
+                display_order=0,
+            ),
+            OptionSeed(
+                code="B",
+                label="The person works as a data analyst and regularly builds predictive models.",
+                display_order=1,
+            ),
+        ),
+    ),
+
+    # Section 2: Framing
     ScenarioSeed(
         slug="framing-effect",
         version=1,
-        title="Framing Effect",
-        category="contextual-bias",
+        title="Decision Scenario 6",
+        category="framing",
         prompt=(
-            "A public-health emergency is expected to affect 600 people. "
-            "Which response program would you choose?"
+            "Investment Scenario. You are considering two investment options. "
+            "Which option do you choose?"
         ),
         options=(
             OptionSeed(
                 code="A",
-                label="A program that will save 200 people.",
+                label="A guaranteed return of £500.",
                 display_order=0,
             ),
             OptionSeed(
                 code="B",
-                label=(
-                    "A program with a one-third probability of saving all "
-                    "600 people and a two-thirds probability of saving no one."
-                ),
+                label="A 50% chance to gain £1000 and a 50% chance to gain nothing.",
                 display_order=1,
             ),
         ),
     ),
     ScenarioSeed(
-        slug="risk-preference",
+        slug="framing-effect-2",
         version=1,
-        title="Risk Preference",
-        category="expected-value",
-        prompt=(
-            "Choose one of the following payment options. Assume the "
-            "random outcome is fair and independently determined."
-        ),
+        title="Decision Scenario 7",
+        category="framing",
+        prompt="Loss Framing. Which option do you choose?",
         options=(
             OptionSeed(
                 code="A",
-                label="Receive $40 with certainty.",
+                label="A guaranteed loss of £500.",
                 display_order=0,
             ),
             OptionSeed(
                 code="B",
-                label=(
-                    "Receive $100 with a 50% probability and $0 with a 50% probability."
-                ),
+                label="A 50% chance to lose £1000 and a 50% chance to lose nothing.",
+                display_order=1,
+            ),
+        ),
+    ),
+    ScenarioSeed(
+        slug="framing-effect-3",
+        version=1,
+        title="Decision Scenario 8",
+        category="framing",
+        prompt=(
+            "Business Decision. A company is deciding between two strategies. "
+            "Which option is preferable?"
+        ),
+        options=(
+            OptionSeed(
+                code="A",
+                label="This strategy will ensure 70% of profits are retained.",
+                display_order=0,
+            ),
+            OptionSeed(
+                code="B",
+                label="This strategy carries a 30% chance of losing all profits.",
+                display_order=1,
+            ),
+        ),
+    ),
+    ScenarioSeed(
+        slug="framing-effect-4",
+        version=1,
+        title="Decision Scenario 9",
+        category="framing",
+        prompt="Insurance Decision. Which option do you choose?",
+        options=(
+            OptionSeed(
+                code="A",
+                label="Pay £200 to fully avoid a potential loss.",
+                display_order=0,
+            ),
+            OptionSeed(
+                code="B",
+                label="20% chance of losing £1000 and 80% chance of losing nothing.",
+                display_order=1,
+            ),
+        ),
+    ),
+    ScenarioSeed(
+        slug="framing-effect-5",
+        version=1,
+        title="Decision Scenario 10",
+        category="framing",
+        prompt="Investment Framing. Which option do you prefer?",
+        options=(
+            OptionSeed(
+                code="A",
+                label="80% chance of gaining £1000.",
+                display_order=0,
+            ),
+            OptionSeed(
+                code="B",
+                label="20% chance of gaining nothing.",
+                display_order=1,
+            ),
+        ),
+    ),
+
+    # Section 3: Risk Preferences
+    ScenarioSeed(
+        slug="risk-preference",
+        version=1,
+        title="Decision Scenario 11",
+        category="risk-preference",
+        prompt="Financial Choice. Which option do you choose?",
+        options=(
+            OptionSeed(
+                code="A",
+                label="Guaranteed £400.",
+                display_order=0,
+            ),
+            OptionSeed(
+                code="B",
+                label="50% chance of £900 and 50% chance of £0.",
+                display_order=1,
+            ),
+        ),
+    ),
+    ScenarioSeed(
+        slug="risk-preference-2",
+        version=1,
+        title="Decision Scenario 12",
+        category="risk-preference",
+        prompt="Loss Scenario. Which option do you choose?",
+        options=(
+            OptionSeed(
+                code="A",
+                label="Guaranteed loss of £300.",
+                display_order=0,
+            ),
+            OptionSeed(
+                code="B",
+                label="50% chance of losing £700 and 50% chance of losing nothing.",
+                display_order=1,
+            ),
+        ),
+    ),
+    ScenarioSeed(
+        slug="risk-preference-3",
+        version=1,
+        title="Decision Scenario 13",
+        category="risk-preference",
+        prompt="Career Decision. Which option do you prefer?",
+        options=(
+            OptionSeed(
+                code="A",
+                label="Stable job with a fixed salary.",
+                display_order=0,
+            ),
+            OptionSeed(
+                code="B",
+                label="Startup job with higher potential earnings but high uncertainty.",
+                display_order=1,
+            ),
+        ),
+    ),
+    ScenarioSeed(
+        slug="risk-preference-4",
+        version=1,
+        title="Decision Scenario 14",
+        category="risk-preference",
+        prompt="Investment Growth. Which option do you choose?",
+        options=(
+            OptionSeed(
+                code="A",
+                label="Guaranteed return of £2000.",
+                display_order=0,
+            ),
+            OptionSeed(
+                code="B",
+                label="25% chance of £8000 and 75% chance of £0.",
+                display_order=1,
+            ),
+        ),
+    ),
+    ScenarioSeed(
+        slug="risk-preference-5",
+        version=1,
+        title="Decision Scenario 15",
+        category="risk-preference",
+        prompt="Project Choice. Which option do you choose?",
+        options=(
+            OptionSeed(
+                code="A",
+                label="Choose a project with guaranteed moderate results.",
+                display_order=0,
+            ),
+            OptionSeed(
+                code="B",
+                label="Choose a project with high potential but risk of failure.",
+                display_order=1,
+            ),
+        ),
+    ),
+
+    # Section 4: Probability Judgement
+    ScenarioSeed(
+        slug="probability-judgement-1",
+        version=1,
+        title="Decision Scenario 16",
+        category="probability-judgement",
+        prompt="Which statement is more probable?",
+        options=(
+            OptionSeed(
+                code="A",
+                label="Drawing one red card from a standard deck.",
+                display_order=0,
+            ),
+            OptionSeed(
+                code="B",
+                label="Drawing two red cards consecutively without replacement.",
+                display_order=1,
+            ),
+        ),
+    ),
+    ScenarioSeed(
+        slug="probability-judgement-2",
+        version=1,
+        title="Decision Scenario 17",
+        category="probability-judgement",
+        prompt="Which statement is more likely?",
+        options=(
+            OptionSeed(
+                code="A",
+                label="A randomly selected individual owns a car.",
+                display_order=0,
+            ),
+            OptionSeed(
+                code="B",
+                label="A randomly selected individual owns a car and commutes daily.",
+                display_order=1,
+            ),
+        ),
+    ),
+    ScenarioSeed(
+        slug="probability-judgement-3",
+        version=1,
+        title="Decision Scenario 18",
+        category="probability-judgement",
+        prompt="Which statement is more probable?",
+        options=(
+            OptionSeed(
+                code="A",
+                label="A randomly selected student scores above average.",
+                display_order=0,
+            ),
+            OptionSeed(
+                code="B",
+                label="A randomly selected student scores above average and receives a distinction.",
+                display_order=1,
+            ),
+        ),
+    ),
+    ScenarioSeed(
+        slug="probability-judgement-4",
+        version=1,
+        title="Decision Scenario 19",
+        category="probability-judgement",
+        prompt="Which statement is more likely?",
+        options=(
+            OptionSeed(
+                code="A",
+                label="A product passes quality inspection.",
+                display_order=0,
+            ),
+            OptionSeed(
+                code="B",
+                label="A product passes inspection and is shipped on time.",
+                display_order=1,
+            ),
+        ),
+    ),
+    ScenarioSeed(
+        slug="probability-judgement-5",
+        version=1,
+        title="Decision Scenario 20",
+        category="probability-judgement",
+        prompt="Which statement is more probable?",
+        options=(
+            OptionSeed(
+                code="A",
+                label="A person is employed.",
+                display_order=0,
+            ),
+            OptionSeed(
+                code="B",
+                label="A person is employed and works full-time.",
                 display_order=1,
             ),
         ),

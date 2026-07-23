@@ -1,0 +1,27 @@
+{
+  "model_type": "logistic_regression",
+  "scope": "synthetic_reference_model",
+  "feature_columns": [
+    "bias",
+    "category_conjunction",
+    "category_framing",
+    "category_risk",
+    "category_probability",
+    "option_is_b",
+    "option_is_broader_event",
+    "option_has_expected_value_advantage",
+    "option_is_loss_protective"
+  ],
+  "weights": [
+    -0.42104047030966085,
+    -0.858624845092949,
+    1.3490447722526162,
+    -0.052835552376388414,
+    -0.858624845092949,
+    -2.681911922685129,
+    5.699090875411842,
+    3.1724418215470003,
+    1.4155417335128335
+  ],
+  "decision_threshold": 0.5
+}
