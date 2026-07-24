@@ -156,7 +156,6 @@ BASELINE_SCENARIOS: tuple[ScenarioSeed, ...] = (
             ),
         ),
     ),
-
     # Section 2: Framing
     ScenarioSeed(
         slug="framing-effect",
@@ -259,7 +258,6 @@ BASELINE_SCENARIOS: tuple[ScenarioSeed, ...] = (
             ),
         ),
     ),
-
     # Section 3: Risk Preferences
     ScenarioSeed(
         slug="risk-preference",
@@ -356,7 +354,6 @@ BASELINE_SCENARIOS: tuple[ScenarioSeed, ...] = (
             ),
         ),
     ),
-
     # Section 4: Probability Judgement
     ScenarioSeed(
         slug="probability-judgement-1",
