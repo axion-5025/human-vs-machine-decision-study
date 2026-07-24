@@ -16,13 +16,71 @@ import {
 } from "vitest";
 
 import {
+  getPresentationScenario,
+} from "../supervisor/presentationAnalysis";
+import { SUPERVISOR_QUESTIONS } from "../supervisor/supervisorQuestions";
+import {
   initializeSupervisorSession,
   saveSupervisorAnswer,
   startSupervisorQuestions,
 } from "../supervisor/supervisorStorage";
 import SupervisorAnalysisPage from "./SupervisorAnalysisPage";
 
-function completeSupervisorSession(): void {
+type SupervisorQuestion = (typeof SUPERVISOR_QUESTIONS)[number];
+type SupervisorOption = SupervisorQuestion["options"][number];
+
+interface CompletedAnswerFixture {
+  questionId: string;
+  optionId: string;
+  confidence: number;
+}
+
+function getSupervisorQuestion(index: number): SupervisorQuestion {
+  const question = SUPERVISOR_QUESTIONS[index];
+
+  if (!question) {
+    throw new Error(`Missing supervisor question fixture at index ${index}.`);
+  }
+
+  return question;
+}
+
+function getSupervisorOption(
+  question: SupervisorQuestion,
+  optionId: string,
+): SupervisorOption {
+  const option = question.options.find(
+    (candidate) => candidate.id === optionId,
+  );
+
+  if (!option) {
+    throw new Error(
+      `Missing supervisor option fixture '${optionId}' for '${question.id}'.`,
+    );
+  }
+
+  return option;
+}
+
+function getAnswerFixture(questionIndex: number): CompletedAnswerFixture {
+  const question = getSupervisorQuestion(questionIndex);
+  const presentationScenario = getPresentationScenario(question.id);
+
+  const optionId =
+    presentationScenario?.consensusOptionId ?? question.options[0]?.id;
+
+  if (!optionId) {
+    throw new Error(`Missing supervisor option fixture for '${question.id}'.`);
+  }
+
+  return {
+    questionId: question.id,
+    optionId,
+    confidence: 60 + questionIndex,
+  };
+}
+
+function completeSupervisorSession(): CompletedAnswerFixture[] {
   let session = startSupervisorQuestions(
     initializeSupervisorSession({
       sessionId: "supervisor-analysis-test",
@@ -30,26 +88,47 @@ function completeSupervisorSession(): void {
     }),
   );
 
-  session = saveSupervisorAnswer(session, {
-    questionId: "conjunction-probability",
-    optionId: "bank-teller",
-    confidence: 60,
-    answeredAt: "2026-06-26T12:01:00.000Z",
-  });
+  const answers: CompletedAnswerFixture[] = [];
 
-  session = saveSupervisorAnswer(session, {
-    questionId: "framing-program",
-    optionId: "certain-save",
-    confidence: 70,
-    answeredAt: "2026-06-26T12:02:00.000Z",
-  });
+  for (
+    let questionIndex = 0;
+    questionIndex < SUPERVISOR_QUESTIONS.length;
+    questionIndex += 1
+  ) {
+    const answer = getAnswerFixture(questionIndex);
 
-  saveSupervisorAnswer(session, {
-    questionId: "risk-reward",
-    optionId: "variable-reward",
-    confidence: 80,
-    answeredAt: "2026-06-26T12:03:00.000Z",
-  });
+    answers.push(answer);
+
+    session = saveSupervisorAnswer(session, {
+      ...answer,
+      answeredAt: new Date(
+        Date.UTC(2026, 5, 26, 12, questionIndex, 0),
+      ).toISOString(),
+    });
+  }
+
+  return answers;
+}
+
+function calculateExpectedAverageConfidence(
+  answers: readonly CompletedAnswerFixture[],
+): number {
+  const total = answers.reduce(
+    (sum, answer) => sum + answer.confidence,
+    0,
+  );
+
+  return Math.round(total / answers.length);
+}
+
+function calculateExpectedConsensusAlignment(
+  answers: readonly CompletedAnswerFixture[],
+): number {
+  return answers.filter((answer) => {
+    const presentationScenario = getPresentationScenario(answer.questionId);
+
+    return presentationScenario?.consensusOptionId === answer.optionId;
+  }).length;
 }
 
 function renderAnalysisRoute() {
@@ -124,24 +203,40 @@ describe("SupervisorAnalysisPage", () => {
   });
 
   it("summarizes local confidence and consensus alignment", () => {
-    completeSupervisorSession();
+    const answers = completeSupervisorSession();
+
     renderAnalysisRoute();
 
-    expect(screen.getAllByText("70%")).toHaveLength(2);
-    expect(screen.getByText("3/3")).toBeInTheDocument();
+    const expectedAverageConfidence =
+      calculateExpectedAverageConfidence(answers);
+
+    const expectedConsensusAlignment =
+      calculateExpectedConsensusAlignment(answers);
 
     expect(
-      screen.getByText("Linda is a bank teller."),
-    ).toBeInTheDocument();
-
-    expect(
-      screen.queryByText("Receive $500 with certainty."),
-    ).not.toBeInTheDocument();
+      screen.getAllByText(`${expectedAverageConfidence}%`).length,
+    ).toBeGreaterThan(0);
 
     expect(
       screen.getByText(
-        "A 50% chance to receive $1,100 and a 50% chance to receive $0.",
+        `${expectedConsensusAlignment}/${SUPERVISOR_QUESTIONS.length}`,
       ),
+    ).toBeInTheDocument();
+
+    const firstQuestion = getSupervisorQuestion(0);
+    const firstAnswer = answers[0];
+
+    if (!firstAnswer) {
+      throw new Error("Missing first supervisor answer fixture.");
+    }
+
+    const firstSelectedOption = getSupervisorOption(
+      firstQuestion,
+      firstAnswer.optionId,
+    );
+
+    expect(
+      screen.getByText(firstSelectedOption.label),
     ).toBeInTheDocument();
   });
 

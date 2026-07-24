@@ -7,14 +7,17 @@ import {
 import { SUPERVISOR_QUESTIONS } from "./supervisorQuestions";
 
 describe("SUPERVISOR_QUESTIONS", () => {
-  it("provides the three intended decision scenarios", () => {
+  it("provides the twenty intended decision scenarios", () => {
+    expect(SUPERVISOR_QUESTIONS).toHaveLength(20);
+
     expect(
       SUPERVISOR_QUESTIONS.map((question) => question.title),
-    ).toEqual([
-      "Conjunction Fallacy",
-      "Framing Effect",
-      "Risk Preference",
-    ]);
+    ).toEqual(
+      Array.from(
+        { length: 20 },
+        (_, index) => `Decision Scenario ${index + 1}`,
+      ),
+    );
   });
 
   it("uses unique question and option identifiers", () => {
@@ -32,14 +35,24 @@ describe("SUPERVISOR_QUESTIONS", () => {
 
   it("gives every question usable presentation content", () => {
     for (const question of SUPERVISOR_QUESTIONS) {
+      expect(question.id.trim()).not.toBe("");
       expect(question.category.trim()).not.toBe("");
       expect(question.context.trim()).not.toBe("");
       expect(question.prompt.trim()).not.toBe("");
-      expect(question.options.length).toBeGreaterThanOrEqual(2);
+      expect(question.options).toHaveLength(2);
 
       for (const option of question.options) {
+        expect(option.id.trim()).not.toBe("");
         expect(option.label.trim()).not.toBe("");
       }
     }
+  });
+
+  it("covers multiple decision-making categories", () => {
+    const categories = new Set(
+      SUPERVISOR_QUESTIONS.map((question) => question.category),
+    );
+
+    expect(categories.size).toBeGreaterThanOrEqual(3);
   });
 });

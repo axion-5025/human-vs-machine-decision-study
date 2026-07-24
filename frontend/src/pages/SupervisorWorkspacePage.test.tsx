@@ -13,6 +13,7 @@ import {
   vi,
 } from "vitest";
 
+import { SUPERVISOR_QUESTIONS } from "../supervisor/supervisorQuestions";
 import {
   initializeSupervisorSession,
   saveSupervisorAnswer,
@@ -20,6 +21,36 @@ import {
   SUPERVISOR_SESSION_STORAGE_KEY,
 } from "../supervisor/supervisorStorage";
 import SupervisorWorkspacePage from "./SupervisorWorkspacePage";
+
+type User = ReturnType<typeof userEvent.setup>;
+
+const FIRST_QUESTION = SUPERVISOR_QUESTIONS[0];
+const SECOND_QUESTION = SUPERVISOR_QUESTIONS[1];
+
+if (!FIRST_QUESTION || !SECOND_QUESTION) {
+  throw new Error("Supervisor question test fixtures are missing.");
+}
+
+function getSupervisorOptionLabel(
+  questionIndex: number,
+  optionIndex: number,
+): string {
+  const question = SUPERVISOR_QUESTIONS[questionIndex];
+
+  if (!question) {
+    throw new Error(`Missing supervisor question at index ${questionIndex}.`);
+  }
+
+  const option = question.options[optionIndex];
+
+  if (!option) {
+    throw new Error(
+      `Missing supervisor option at question ${questionIndex}, option ${optionIndex}.`,
+    );
+  }
+
+  return option.label;
+}
 
 function renderSupervisorWorkspacePage() {
   return render(
@@ -47,6 +78,43 @@ async function initializeAndBegin() {
   );
 
   return user;
+}
+
+async function answerCurrentQuestion(
+  user: User,
+  questionIndex: number,
+  optionIndex = 0,
+) {
+  await user.click(
+    screen.getByLabelText(
+      getSupervisorOptionLabel(questionIndex, optionIndex),
+    ),
+  );
+
+  const isLastQuestion =
+    questionIndex === SUPERVISOR_QUESTIONS.length - 1;
+
+  await user.click(
+    screen.getByRole("button", {
+      name: isLastQuestion
+        ? /finish experience/i
+        : /continue/i,
+    }),
+  );
+}
+
+async function answerAllSupervisorQuestions(user: User) {
+  for (
+    let questionIndex = 0;
+    questionIndex < SUPERVISOR_QUESTIONS.length;
+    questionIndex += 1
+  ) {
+    await answerCurrentQuestion(
+      user,
+      questionIndex,
+      questionIndex % 2,
+    );
+  }
 }
 
 describe("SupervisorWorkspacePage", () => {
@@ -112,37 +180,13 @@ describe("SupervisorWorkspacePage", () => {
       screen.getByRole("button", { name: "Continue" }),
     ).toBeDisabled();
 
-    await user.click(
-      screen.getByLabelText("Linda is a bank teller."),
-    );
-
-    await user.click(
-      screen.getByRole("button", { name: "Continue" }),
-    );
-
     expect(
-      screen.getByRole("heading", { name: "Framing Effect" }),
+      screen.getByText(
+        `Question 1 of ${SUPERVISOR_QUESTIONS.length}`,
+      ),
     ).toBeInTheDocument();
 
-    await user.click(
-      screen.getByLabelText(
-        "Program A: 200 people will be saved.",
-      ),
-    );
-
-    await user.click(
-      screen.getByRole("button", { name: "Continue" }),
-    );
-
-    await user.click(
-      screen.getByLabelText("Receive $500 with certainty."),
-    );
-
-    await user.click(
-      screen.getByRole("button", {
-        name: /finish experience/i,
-      }),
-    );
+    await answerAllSupervisorQuestions(user);
 
     expect(
       screen.getByRole("heading", {
@@ -152,10 +196,15 @@ describe("SupervisorWorkspacePage", () => {
 
     expect(
       screen.getAllByText(/70% confident/i),
-    ).toHaveLength(3);
+    ).toHaveLength(SUPERVISOR_QUESTIONS.length);
 
     expect(
-      screen.getByText("Receive $500 with certainty."),
+      screen.getByText(
+        getSupervisorOptionLabel(
+          SUPERVISOR_QUESTIONS.length - 1,
+          (SUPERVISOR_QUESTIONS.length - 1) % 2,
+        ),
+      ),
     ).toBeInTheDocument();
 
     expect(
@@ -174,8 +223,8 @@ describe("SupervisorWorkspacePage", () => {
     );
 
     session = saveSupervisorAnswer(session, {
-      questionId: "conjunction-probability",
-      optionId: "bank-teller",
+      questionId: FIRST_QUESTION.id,
+      optionId: FIRST_QUESTION.options[0].id,
       confidence: 74,
       answeredAt: "2026-06-26T12:05:00.000Z",
     });
@@ -185,24 +234,22 @@ describe("SupervisorWorkspacePage", () => {
     renderSupervisorWorkspacePage();
 
     expect(
-      screen.getByRole("heading", { name: "Framing Effect" }),
+      screen.getByRole("heading", {
+        name: SECOND_QUESTION.title,
+      }),
     ).toBeInTheDocument();
 
     expect(
-      screen.getByText("Question 2 of 3"),
+      screen.getByText(
+        `Question 2 of ${SUPERVISOR_QUESTIONS.length}`,
+      ),
     ).toBeInTheDocument();
   });
 
   it("moves back to an answered question", async () => {
     const user = await initializeAndBegin();
 
-    await user.click(
-      screen.getByLabelText("Linda is a bank teller."),
-    );
-
-    await user.click(
-      screen.getByRole("button", { name: "Continue" }),
-    );
+    await answerCurrentQuestion(user, 0, 0);
 
     await user.click(
       screen.getByRole("button", { name: "Previous" }),
@@ -210,42 +257,19 @@ describe("SupervisorWorkspacePage", () => {
 
     expect(
       screen.getByRole("heading", {
-        name: "Conjunction Fallacy",
+        name: FIRST_QUESTION.title,
       }),
     ).toBeInTheDocument();
 
     expect(
-      screen.getByLabelText("Linda is a bank teller."),
+      screen.getByLabelText(FIRST_QUESTION.options[0].label),
     ).toBeChecked();
   });
 
   it("restarts questions and resets the full session", async () => {
     const user = await initializeAndBegin();
 
-    await user.click(
-      screen.getByLabelText("Linda is a bank teller."),
-    );
-    await user.click(
-      screen.getByRole("button", { name: "Continue" }),
-    );
-
-    await user.click(
-      screen.getByLabelText(
-        "Program A: 200 people will be saved.",
-      ),
-    );
-    await user.click(
-      screen.getByRole("button", { name: "Continue" }),
-    );
-
-    await user.click(
-      screen.getByLabelText("Receive $500 with certainty."),
-    );
-    await user.click(
-      screen.getByRole("button", {
-        name: /finish experience/i,
-      }),
-    );
+    await answerAllSupervisorQuestions(user);
 
     await user.click(
       screen.getByRole("button", {
@@ -255,7 +279,7 @@ describe("SupervisorWorkspacePage", () => {
 
     expect(
       screen.getByRole("heading", {
-        name: "Conjunction Fallacy",
+        name: FIRST_QUESTION.title,
       }),
     ).toBeInTheDocument();
 

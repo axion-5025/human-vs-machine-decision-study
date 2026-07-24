@@ -17,7 +17,7 @@ import {
 describe("presentationAnalysis", () => {
   it("uses an explicit presentation-only dataset identity", () => {
     expect(PRESENTATION_DATASET_ID).toBe(
-      "supervisor-presentation-v1",
+      "supervisor-presentation-v2",
     );
 
     expect(PRESENTATION_DATA_NOTICE).toMatch(

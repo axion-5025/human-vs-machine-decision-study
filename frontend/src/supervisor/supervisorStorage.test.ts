@@ -5,6 +5,8 @@ import {
   it,
 } from "vitest";
 
+import { SUPERVISOR_QUESTIONS } from "./supervisorQuestions";
+
 import {
   clearSupervisorSession,
   initializeSupervisorSession,
@@ -16,12 +18,40 @@ import {
   SUPERVISOR_SESSION_STORAGE_KEY,
 } from "./supervisorStorage";
 
-const FIRST_ANSWER = {
-  questionId: "conjunction-probability",
-  optionId: "bank-teller",
-  confidence: 72,
-  answeredAt: "2026-06-26T12:05:00.000Z",
-};
+function createSupervisorAnswer(
+  questionIndex: number,
+  optionIndex = 0,
+  confidence = 72,
+) {
+  const question = SUPERVISOR_QUESTIONS[questionIndex];
+
+  if (!question) {
+    throw new Error(`Missing supervisor question fixture at index ${questionIndex}.`);
+  }
+
+  const option = question.options[optionIndex];
+
+  if (!option) {
+    throw new Error(
+      `Missing supervisor option fixture at question ${questionIndex}, option ${optionIndex}.`,
+    );
+  }
+
+  return {
+    questionId: question.id,
+    optionId: option.id,
+    confidence,
+    answeredAt: new Date(
+      Date.UTC(2026, 5, 26, 12, questionIndex, 0),
+    ).toISOString(),
+  };
+}
+
+const FIRST_ANSWER = createSupervisorAnswer(
+  0,
+  0,
+  72,
+);
 
 describe("supervisorStorage", () => {
   beforeEach(() => {
@@ -74,23 +104,26 @@ describe("supervisorStorage", () => {
     expect(session.currentQuestionIndex).toBe(1);
     expect(session.answers).toEqual([FIRST_ANSWER]);
 
-    session = saveSupervisorAnswer(session, {
-      questionId: "framing-program",
-      optionId: "certain-save",
-      confidence: 65,
-      answeredAt: "2026-06-26T12:06:00.000Z",
-    });
-
-    session = saveSupervisorAnswer(session, {
-      questionId: "risk-reward",
-      optionId: "variable-reward",
-      confidence: 81,
-      answeredAt: "2026-06-26T12:07:00.000Z",
-    });
+    for (
+      let questionIndex = 1;
+      questionIndex < SUPERVISOR_QUESTIONS.length;
+      questionIndex += 1
+    ) {
+      session = saveSupervisorAnswer(
+        session,
+        createSupervisorAnswer(
+          questionIndex,
+          questionIndex % 2,
+          60 + questionIndex,
+        ),
+      );
+    }
 
     expect(session.phase).toBe("complete");
-    expect(session.currentQuestionIndex).toBe(2);
-    expect(session.answers).toHaveLength(3);
+    expect(session.currentQuestionIndex).toBe(
+      SUPERVISOR_QUESTIONS.length - 1,
+    );
+    expect(session.answers).toHaveLength(SUPERVISOR_QUESTIONS.length);
     expect(session.completedAt).toEqual(expect.any(String));
     expect(loadSupervisorSession()).toEqual(session);
   });
