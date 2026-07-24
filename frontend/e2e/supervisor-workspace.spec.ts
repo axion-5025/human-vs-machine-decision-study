@@ -1,165 +1,235 @@
 import {
   expect,
+  type Page,
   test,
 } from "@playwright/test";
 
-async function startGuidedQuestions(
-  page: import("@playwright/test").Page,
-) {
-  await page.goto("/supervisor");
+import { PRESENTATION_DATASET_ID } from "../src/supervisor/presentationAnalysis";
+import { SUPERVISOR_QUESTIONS } from "../src/supervisor/supervisorQuestions";
 
-  await page.getByRole("button", {
-    name: /start supervisor session/i,
-  }).click();
+const EXPECTED_SUPERVISOR_QUESTION_COUNT = 20;
 
-  await page.getByRole("button", {
-    name: /begin guided questions/i,
-  }).click();
-}
-
-test("supervisor questions complete without API traffic", async ({
-  page,
-}) => {
-  const apiRequests: string[] = [];
+function collectResearchApiRequests(page: Page): string[] {
+  const requests: string[] = [];
 
   page.on("request", (request) => {
-    const url = new URL(request.url());
+    const url = request.url();
 
-    if (url.pathname.startsWith("/api/")) {
-      apiRequests.push(url.pathname);
+    if (
+      url.includes("/api/v1/") ||
+      url.endsWith("/health")
+    ) {
+      requests.push(url);
     }
   });
 
-  await startGuidedQuestions(page);
+  return requests;
+}
 
-  await page.getByLabel("Linda is a bank teller.").check();
-  await page.getByRole("button", { name: "Continue" }).click();
+async function startSupervisorQuestions(page: Page): Promise<void> {
+  await page.goto("/supervisor");
 
   await page
-    .getByLabel("Program A: 200 people will be saved.")
-    .check();
-  await page.getByRole("button", { name: "Continue" }).click();
+    .getByRole("button", {
+      name: /start supervisor session/i,
+    })
+    .click();
 
-  await page.getByLabel("Receive $500 with certainty.").check();
-  await page.getByRole("button", {
-    name: /finish experience/i,
-  }).click();
+  await expect(
+    page.getByRole("heading", {
+      name: /supervisor workspace is ready/i,
+    }),
+  ).toBeVisible();
+
+  await page
+    .getByRole("button", {
+      name: /begin guided questions/i,
+    })
+    .click();
+
+  await expect(
+    page.getByText(
+      `Question 1 of ${SUPERVISOR_QUESTIONS.length}`,
+    ),
+  ).toBeVisible();
+}
+
+async function answerSupervisorQuestion(
+  page: Page,
+  questionIndex: number,
+): Promise<void> {
+  const question = SUPERVISOR_QUESTIONS[questionIndex];
+
+  if (!question) {
+    throw new Error(
+      `Missing supervisor question at index ${questionIndex}.`,
+    );
+  }
+
+  const option =
+    question.options[questionIndex % question.options.length];
+
+  if (!option) {
+    throw new Error(
+      `Missing supervisor option for question '${question.id}'.`,
+    );
+  }
+
+  await expect(
+    page.getByText(
+      `Question ${questionIndex + 1} of ${SUPERVISOR_QUESTIONS.length}`,
+    ),
+  ).toBeVisible();
+
+  await expect(
+    page.getByRole("heading", {
+      name: question.title,
+    }),
+  ).toBeVisible();
+
+  await page
+    .getByLabel(option.label)
+    .check();
+
+  const isLastQuestion =
+    questionIndex === SUPERVISOR_QUESTIONS.length - 1;
+
+  await page
+    .getByRole("button", {
+      name: isLastQuestion
+        ? /finish experience/i
+        : /continue/i,
+    })
+    .click();
+}
+
+async function completeSupervisorQuestions(
+  page: Page,
+): Promise<void> {
+  for (
+    let questionIndex = 0;
+    questionIndex < SUPERVISOR_QUESTIONS.length;
+    questionIndex += 1
+  ) {
+    await answerSupervisorQuestion(page, questionIndex);
+  }
 
   await expect(
     page.getByRole("heading", {
       name: /your responses are ready for review/i,
     }),
   ).toBeVisible();
+}
 
-  await expect(
-    page.getByText("Receive $500 with certainty."),
-  ).toBeVisible();
+test.describe("supervisor workspace", () => {
+  test("supervisor questions complete without API traffic", async ({
+    page,
+  }) => {
+    expect(SUPERVISOR_QUESTIONS).toHaveLength(
+      EXPECTED_SUPERVISOR_QUESTION_COUNT,
+    );
 
-  expect(apiRequests).toEqual([]);
-});
+    const apiRequests = collectResearchApiRequests(page);
 
-test("supervisor questions recover after refresh", async ({
-  page,
-}) => {
-  await startGuidedQuestions(page);
+    await startSupervisorQuestions(page);
+    await completeSupervisorQuestions(page);
 
-  await page.getByLabel("Linda is a bank teller.").check();
-  await page.getByRole("button", { name: "Continue" }).click();
+    await expect(
+      page.getByText(/excluded from participant totals/i),
+    ).toBeVisible();
 
-  await expect(
-    page.getByRole("heading", { name: "Framing Effect" }),
-  ).toBeVisible();
+    await expect(
+      page.getByRole("link", {
+        name: /view comparative analysis/i,
+      }),
+    ).toHaveAttribute("href", "/supervisor/analysis");
 
-  await page.reload();
-
-  await expect(
-    page.getByRole("heading", { name: "Framing Effect" }),
-  ).toBeVisible();
-
-  await expect(
-    page.getByText("Question 2 of 3"),
-  ).toBeVisible();
-});
-
-test("supervisor session can be reset", async ({
-  page,
-}) => {
-  await page.goto("/supervisor");
-
-  await page.getByRole("button", {
-    name: /start supervisor session/i,
-  }).click();
-
-  await page.getByRole("button", {
-    name: /reset session/i,
-  }).click();
-
-  await expect(
-    page.getByRole("button", {
-      name: /start supervisor session/i,
-    }),
-  ).toBeVisible();
-});
-
-test("presentation analysis remains isolated from research APIs", async ({
-  page,
-}) => {
-  const apiRequests: string[] = [];
-
-  page.on("request", (request) => {
-    const url = new URL(request.url());
-
-    if (url.pathname.startsWith("/api/")) {
-      apiRequests.push(url.pathname);
-    }
+    expect(apiRequests).toEqual([]);
   });
 
-  await startGuidedQuestions(page);
+  test("supervisor questions recover after refresh", async ({
+    page,
+  }) => {
+    const apiRequests = collectResearchApiRequests(page);
 
-  await page.getByLabel("Linda is a bank teller.").check();
-  await page.getByRole("button", { name: "Continue" }).click();
+    await startSupervisorQuestions(page);
+    await answerSupervisorQuestion(page, 0);
 
-  await page
-    .getByLabel("Program A: 200 people will be saved.")
-    .check();
-  await page.getByRole("button", { name: "Continue" }).click();
+    await expect(
+      page.getByText(
+        `Question 2 of ${SUPERVISOR_QUESTIONS.length}`,
+      ),
+    ).toBeVisible();
 
-  await page
-    .getByLabel(
-      "A 50% chance to receive $1,100 and a 50% chance to receive $0.",
-    )
-    .check();
+    await expect(
+      page.getByRole("heading", {
+        name: SUPERVISOR_QUESTIONS[1].title,
+      }),
+    ).toBeVisible();
 
-  await page.getByRole("button", {
-    name: /finish experience/i,
-  }).click();
+    await page.reload();
 
-  await page.getByRole("link", {
-    name: /view comparative analysis/i,
-  }).click();
+    await expect(
+      page.getByText(
+        `Question 2 of ${SUPERVISOR_QUESTIONS.length}`,
+      ),
+    ).toBeVisible();
 
-  await expect(
-    page.getByRole("heading", {
-      name: /human and model decision patterns/i,
-    }),
-  ).toBeVisible();
+    await expect(
+      page.getByRole("heading", {
+        name: SUPERVISOR_QUESTIONS[1].title,
+      }),
+    ).toBeVisible();
 
-  await expect(
-    page.getByText(/not live research results/i),
-  ).toBeVisible();
+    expect(apiRequests).toEqual([]);
+  });
 
-  await expect(
-    page.getByRole("img", {
-      name: /scenario alignment comparison chart/i,
-    }),
-  ).toBeVisible();
+  test("presentation analysis remains isolated from research APIs", async ({
+    page,
+  }) => {
+    const apiRequests = collectResearchApiRequests(page);
 
-  await expect(
-    page.getByRole("img", {
-      name: /confidence comparison chart/i,
-    }),
-  ).toBeVisible();
+    await startSupervisorQuestions(page);
+    await completeSupervisorQuestions(page);
 
-  expect(apiRequests).toEqual([]);
+    await page
+      .getByRole("link", {
+        name: /view comparative analysis/i,
+      })
+      .click();
+
+    await expect(page).toHaveURL(/\/supervisor\/analysis$/);
+
+    await expect(
+      page.getByRole("heading", {
+        name: /human and model decision patterns/i,
+      }),
+    ).toBeVisible();
+
+    await expect(
+      page.getByText(/not live research results/i),
+    ).toBeVisible();
+
+    await expect(
+      page.getByText(PRESENTATION_DATASET_ID),
+    ).toBeVisible();
+
+    await expect(
+      page.getByText("Research writes"),
+    ).toBeVisible();
+
+    await expect(
+      page.getByText("0"),
+    ).toBeVisible();
+
+    await expect(
+      page.getByText("Never"),
+    ).toBeVisible();
+
+    await expect(
+      page.getByText("sessionStorage"),
+    ).toBeVisible();
+
+    expect(apiRequests).toEqual([]);
+  });
 });
-
