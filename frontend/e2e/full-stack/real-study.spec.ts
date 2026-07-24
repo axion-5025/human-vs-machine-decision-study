@@ -6,6 +6,7 @@ import {
 } from "@playwright/test";
 
 const API_BASE_URL = "http://127.0.0.1:8000";
+const EXPECTED_SCENARIO_COUNT = 20;
 
 interface Scenario {
   id: string;
@@ -40,10 +41,24 @@ async function loadScenarios(
   const scenarios =
     (await response.json()) as Scenario[];
 
-  expect(scenarios).toHaveLength(3);
+  expect(scenarios).toHaveLength(EXPECTED_SCENARIO_COUNT);
+
+  const scenarioIds = scenarios.map(
+    (scenario) => scenario.id,
+  );
+
+  expect(new Set(scenarioIds).size).toBe(
+    EXPECTED_SCENARIO_COUNT,
+  );
 
   for (const scenario of scenarios) {
+    expect(scenario.title.trim()).not.toBe("");
     expect(scenario.options.length).toBeGreaterThan(1);
+
+    for (const option of scenario.options) {
+      expect(option.id.trim()).not.toBe("");
+      expect(option.label.trim()).not.toBe("");
+    }
   }
 
   return scenarios;
@@ -66,11 +81,26 @@ async function beginStudy(
     .click();
 
   await expect(page).toHaveURL(/\/study$/);
+
+  await expect(
+    page.getByText(
+      `Question 1 of ${scenarios.length}`,
+    ),
+  ).toBeVisible();
+
   await expect(
     page.getByRole("heading", {
       name: scenarios[0].title,
     }),
   ).toBeVisible();
+}
+
+function confidenceForQuestion(index: number): string {
+  /*
+   * Keep confidence values valid for all 20 questions.
+   * The API accepts only whole numbers from 0 to 100.
+   */
+  return String(60 + (index % 5) * 8);
 }
 
 async function answerCurrentQuestion(
@@ -128,11 +158,12 @@ test.describe("real frontend, API, and PostgreSQL integration", () => {
 
         await answerCurrentQuestion(
           page,
-          String(70 + index * 10),
+          confidenceForQuestion(index),
         );
       }
 
       await expect(page).toHaveURL(/\/complete$/);
+
       await expect(
         page.getByRole("heading", {
           name: "Thank you for participating",
@@ -161,6 +192,7 @@ test.describe("real frontend, API, and PostgreSQL integration", () => {
       expect(session.id).toBe(sessionReference);
       expect(session.status).toBe("completed");
       expect(session.completed_at).not.toBeNull();
+
       expect(session.responses).toHaveLength(
         scenarios.length,
       );
@@ -200,11 +232,13 @@ test.describe("real frontend, API, and PostgreSQL integration", () => {
       await page.reload();
 
       await expect(page).toHaveURL(/\/study$/);
+
       await expect(
         page.getByText(
           `Question 2 of ${scenarios.length}`,
         ),
       ).toBeVisible();
+
       await expect(
         page.getByRole("heading", {
           name: scenarios[1].title,
@@ -225,6 +259,7 @@ test.describe("real frontend, API, and PostgreSQL integration", () => {
       });
 
       expect(storedProgress).not.toBeNull();
+
       expect(
         storedProgress?.submittedScenarioIds,
       ).toEqual([scenarios[0].id]);
@@ -240,6 +275,7 @@ test.describe("real frontend, API, and PostgreSQL integration", () => {
 
       expect(session.status).toBe("started");
       expect(session.responses).toHaveLength(1);
+
       expect(session.responses[0].scenario_id).toBe(
         scenarios[0].id,
       );
