@@ -206,29 +206,29 @@ test.describe("supervisor workspace", () => {
       }),
     ).toBeVisible();
 
-    await expect(
-      page.getByText(/not live research results/i),
-    ).toBeVisible();
+    const analysisText = await page
+      .locator("body")
+      .innerText();
 
-    await expect(
-      page.getByText(PRESENTATION_DATASET_ID),
-    ).toBeVisible();
+    expect(analysisText).toContain(
+      PRESENTATION_DATASET_ID,
+    );
 
-    await expect(
-      page.getByText("Research writes"),
-    ).toBeVisible();
+    expect(analysisText).toMatch(
+      /not live research results/i,
+    );
 
-    await expect(
-      page.getByText("0"),
-    ).toBeVisible();
+    expect(analysisText).toMatch(
+      /Research writes\s+0/i,
+    );
 
-    await expect(
-      page.getByText("Never"),
-    ).toBeVisible();
+    expect(analysisText).toMatch(
+      /Live participant query\s+Never/i,
+    );
 
-    await expect(
-      page.getByText("sessionStorage"),
-    ).toBeVisible();
+    expect(analysisText).toMatch(
+      /Local session source\s+sessionStorage/i,
+    );
 
     expect(apiRequests).toEqual([]);
   });
