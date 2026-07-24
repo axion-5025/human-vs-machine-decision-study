@@ -10,6 +10,8 @@ from urllib.error import HTTPError, URLError
 from urllib.parse import urljoin
 from urllib.request import Request, urlopen
 
+EXPECTED_RELEASE_SCENARIO_COUNT = 20
+
 
 def request_json(
     base_url: str,
@@ -49,6 +51,7 @@ def request_json(
             return json.loads(body)
     except HTTPError as error:
         body = error.read().decode("utf-8", errors="replace")
+
         raise RuntimeError(
             f"{method} {url} returned HTTP {error.code}: {body}"
         ) from error
@@ -89,6 +92,18 @@ def wait_until_ready(
     ) from last_error
 
 
+def confidence_for_scenario(index: int) -> int:
+    """
+    Return a valid confidence value for any release-smoke scenario.
+
+    The API accepts only whole numbers from 0 to 100. The old smoke test
+    used 70 + index * 10, which breaks once the study has more than four
+    scenarios.
+    """
+
+    return 60 + ((index % 5) * 8)
+
+
 def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument(
@@ -114,9 +129,16 @@ def main() -> None:
         "/api/v1/scenarios",
     )
 
-    if not isinstance(scenarios, list) or len(scenarios) != 3:
+    if not isinstance(scenarios, list):
         raise RuntimeError(
-            "Expected exactly three active release scenarios."
+            "Scenarios endpoint did not return a list."
+        )
+
+    if len(scenarios) != EXPECTED_RELEASE_SCENARIO_COUNT:
+        raise RuntimeError(
+            "Expected exactly "
+            f"{EXPECTED_RELEASE_SCENARIO_COUNT} active release scenarios, "
+            f"found {len(scenarios)}."
         )
 
     participant = request_json(
@@ -150,7 +172,7 @@ def main() -> None:
             payload={
                 "scenario_id": scenario["id"],
                 "selected_option_id": options[0]["id"],
-                "confidence": 70 + (index * 10),
+                "confidence": confidence_for_scenario(index),
                 "response_time_ms": 1000 + (index * 100),
             },
         )
