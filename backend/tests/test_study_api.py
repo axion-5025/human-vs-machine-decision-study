@@ -11,6 +11,8 @@ from app.database import engine
 from app.main import app
 from app.seeds.scenarios import seed_baseline_scenarios
 
+EXPECTED_SCENARIO_COUNT = 20
+
 
 @pytest.fixture
 def api_client() -> Iterator[TestClient]:
@@ -25,8 +27,8 @@ def api_client() -> Iterator[TestClient]:
     connection = engine.connect()
     outer_transaction = connection.begin()
 
-    # Guarantee that the three deterministic baseline scenarios exist
-    # inside the same transaction used by this test.
+    # Guarantee that the deterministic baseline scenarios exist inside
+    # the same transaction used by this test.
     seed_session = Session(
         bind=connection,
         join_transaction_mode="create_savepoint",
@@ -118,7 +120,7 @@ def start_session(
 def get_scenarios(
     client: TestClient,
 ) -> list[dict[str, Any]]:
-    """Load and validate the three baseline study scenarios."""
+    """Load and validate the baseline study scenarios."""
 
     response = client.get("/api/v1/scenarios")
 
@@ -126,22 +128,35 @@ def get_scenarios(
 
     scenarios = response.json()
 
-    assert len(scenarios) == 3
+    assert len(scenarios) == EXPECTED_SCENARIO_COUNT
 
-    assert {scenario["slug"] for scenario in scenarios} == {
-        "conjunction-fallacy",
-        "framing-effect",
-        "risk-preference",
-    }
+    scenario_ids = [scenario["id"] for scenario in scenarios]
+    scenario_slugs = [scenario["slug"] for scenario in scenarios]
+
+    assert len(set(scenario_ids)) == EXPECTED_SCENARIO_COUNT
+    assert len(set(scenario_slugs)) == EXPECTED_SCENARIO_COUNT
 
     for scenario in scenarios:
         assert scenario["version"] == 1
+        assert scenario["slug"].strip() != ""
+        assert scenario["title"].strip() != ""
+        assert scenario["category"].strip() != ""
         assert len(scenario["options"]) == 2
 
         display_orders = [option["display_order"] for option in scenario["options"]]
 
         assert display_orders == sorted(display_orders)
         assert display_orders == [0, 1]
+
+        option_ids = [option["id"] for option in scenario["options"]]
+
+        option_codes = [option["code"] for option in scenario["options"]]
+
+        assert len(set(option_ids)) == 2
+        assert len(set(option_codes)) == 2
+
+        for option in scenario["options"]:
+            assert option["label"].strip() != ""
 
     return scenarios
 
@@ -161,7 +176,7 @@ def submit_response(
         f"/api/v1/sessions/{session_id}/responses",
         json={
             "scenario_id": scenario["id"],
-            "selected_option_id": (scenario["options"][option_index]["id"]),
+            "selected_option_id": scenario["options"][option_index]["id"],
             "confidence": confidence,
             "response_time_ms": response_time_ms,
         },
@@ -270,7 +285,7 @@ def test_invalid_response_payload_is_rejected(
     payload[field_name] = invalid_value
 
     response = api_client.post(
-        (f"/api/v1/sessions/{study_session['id']}/responses"),
+        f"/api/v1/sessions/{study_session['id']}/responses",
         json=payload,
     )
 
@@ -295,10 +310,10 @@ def test_option_from_another_scenario_is_rejected(
     second_scenario = scenarios[1]
 
     response = api_client.post(
-        (f"/api/v1/sessions/{study_session['id']}/responses"),
+        f"/api/v1/sessions/{study_session['id']}/responses",
         json={
             "scenario_id": first_scenario["id"],
-            "selected_option_id": (second_scenario["options"][0]["id"]),
+            "selected_option_id": second_scenario["options"][0]["id"],
             "confidence": 60,
             "response_time_ms": 900,
         },
@@ -306,7 +321,7 @@ def test_option_from_another_scenario_is_rejected(
 
     assert response.status_code == 422
     assert response.json() == {
-        "detail": ("The selected option does not belong to the scenario."),
+        "detail": "The selected option does not belong to the scenario.",
     }
 
 
@@ -341,7 +356,7 @@ def test_duplicate_response_is_rejected(
 
     assert duplicate_response.status_code == 409
     assert duplicate_response.json() == {
-        "detail": ("A response for this scenario already exists."),
+        "detail": "A response for this scenario already exists.",
     }
 
 
@@ -368,12 +383,16 @@ def test_incomplete_session_cannot_be_completed(
     assert response.status_code == 201
 
     completion_response = api_client.post(
-        (f"/api/v1/sessions/{study_session['id']}/complete"),
+        f"/api/v1/sessions/{study_session['id']}/complete",
     )
+
+    unanswered_count = len(scenarios) - 1
 
     assert completion_response.status_code == 409
     assert completion_response.json() == {
-        "detail": ("The session has 2 unanswered active scenario(s)."),
+        "detail": (
+            f"The session has {unanswered_count} unanswered active scenario(s)."
+        ),
     }
 
 
@@ -416,15 +435,10 @@ def test_complete_study_workflow_and_completed_restrictions(
     )
 
     assert detail_before_completion.status_code == 200
-    assert (
-        len(
-            detail_before_completion.json()["responses"],
-        )
-        == 3
-    )
+    assert len(detail_before_completion.json()["responses"]) == len(scenarios)
 
     completion_response = api_client.post(
-        (f"/api/v1/sessions/{study_session['id']}/complete"),
+        f"/api/v1/sessions/{study_session['id']}/complete",
     )
 
     assert completion_response.status_code == 200
@@ -434,7 +448,7 @@ def test_complete_study_workflow_and_completed_restrictions(
     assert completion["id"] == study_session["id"]
     assert completion["status"] == "completed"
     assert completion["completed_at"] is not None
-    assert completion["response_count"] == 3
+    assert completion["response_count"] == len(scenarios)
 
     # Completed sessions cannot accept another response.
     extra_response = submit_response(
@@ -445,17 +459,17 @@ def test_complete_study_workflow_and_completed_restrictions(
 
     assert extra_response.status_code == 409
     assert extra_response.json() == {
-        "detail": ("Responses can only be submitted to a started session."),
+        "detail": "Responses can only be submitted to a started session.",
     }
 
     # Completed sessions cannot be completed a second time.
     second_completion = api_client.post(
-        (f"/api/v1/sessions/{study_session['id']}/complete"),
+        f"/api/v1/sessions/{study_session['id']}/complete",
     )
 
     assert second_completion.status_code == 409
     assert second_completion.json() == {
-        "detail": ("Only a started session can be completed."),
+        "detail": "Only a started session can be completed.",
     }
 
     detail_after_completion = api_client.get(
@@ -468,4 +482,4 @@ def test_complete_study_workflow_and_completed_restrictions(
 
     assert completed_session["status"] == "completed"
     assert completed_session["completed_at"] is not None
-    assert len(completed_session["responses"]) == 3
+    assert len(completed_session["responses"]) == len(scenarios)
