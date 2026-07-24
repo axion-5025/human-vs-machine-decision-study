@@ -1,12 +1,12 @@
 # Human vs Machine Decision Study
 
-[![Frontend CI](https://github.com/kri-shna505/human-vs-machine-decision-study/actions/workflows/frontend-ci.yml/badge.svg)](https://github.com/kri-shna505/human-vs-machine-decision-study/actions/workflows/frontend-ci.yml)
-[![Backend CI](https://github.com/kri-shna505/human-vs-machine-decision-study/actions/workflows/backend-ci.yml/badge.svg)](https://github.com/kri-shna505/human-vs-machine-decision-study/actions/workflows/backend-ci.yml)
-[![E2E CI](https://github.com/kri-shna505/human-vs-machine-decision-study/actions/workflows/e2e-ci.yml/badge.svg)](https://github.com/kri-shna505/human-vs-machine-decision-study/actions/workflows/e2e-ci.yml)
-[![Full-stack CI](https://github.com/kri-shna505/human-vs-machine-decision-study/actions/workflows/full-stack-ci.yml/badge.svg)](https://github.com/kri-shna505/human-vs-machine-decision-study/actions/workflows/full-stack-ci.yml)
-[![Release CI](https://github.com/kri-shna505/human-vs-machine-decision-study/actions/workflows/release-ci.yml/badge.svg)](https://github.com/kri-shna505/human-vs-machine-decision-study/actions/workflows/release-ci.yml)
-[![Security](https://github.com/kri-shna505/human-vs-machine-decision-study/actions/workflows/security.yml/badge.svg)](https://github.com/kri-shna505/human-vs-machine-decision-study/actions/workflows/security.yml)
-[![Readiness CI](https://github.com/kri-shna505/human-vs-machine-decision-study/actions/workflows/readiness-ci.yml/badge.svg)](https://github.com/kri-shna505/human-vs-machine-decision-study/actions/workflows/readiness-ci.yml)
+[![Frontend CI](https://github.com/axion-5025/human-vs-machine-decision-study/actions/workflows/frontend-ci.yml/badge.svg)](https://github.com/axion-5025/human-vs-machine-decision-study/actions/workflows/frontend-ci.yml)
+[![Backend CI](https://github.com/axion-5025/human-vs-machine-decision-study/actions/workflows/backend-ci.yml/badge.svg)](https://github.com/axion-5025/human-vs-machine-decision-study/actions/workflows/backend-ci.yml)
+[![E2E CI](https://github.com/axion-5025/human-vs-machine-decision-study/actions/workflows/e2e-ci.yml/badge.svg)](https://github.com/axion-5025/human-vs-machine-decision-study/actions/workflows/e2e-ci.yml)
+[![Full-stack CI](https://github.com/axion-5025/human-vs-machine-decision-study/actions/workflows/full-stack-ci.yml/badge.svg)](https://github.com/axion-5025/human-vs-machine-decision-study/actions/workflows/full-stack-ci.yml)
+[![Release CI](https://github.com/axion-5025/human-vs-machine-decision-study/actions/workflows/release-ci.yml/badge.svg)](https://github.com/axion-5025/human-vs-machine-decision-study/actions/workflows/release-ci.yml)
+[![Security](https://github.com/axion-5025/human-vs-machine-decision-study/actions/workflows/security.yml/badge.svg)](https://github.com/axion-5025/human-vs-machine-decision-study/actions/workflows/security.yml)
+[![Readiness CI](https://github.com/axion-5025/human-vs-machine-decision-study/actions/workflows/readiness-ci.yml/badge.svg)](https://github.com/axion-5025/human-vs-machine-decision-study/actions/workflows/readiness-ci.yml)
 
 A full-stack research application for comparing human decision-making with
 computational models under uncertainty.
